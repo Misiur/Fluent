@@ -7,6 +7,7 @@ import haxe.macro.Printer;
 
 import fluent.FluentParent;
 
+using haxe.macro.ComplexTypeTools;
 using haxe.macro.ExprTools;
 using haxe.macro.TypeTools;
 using Lambda;
@@ -118,10 +119,12 @@ class Macro
             }
         };
 
+        //Add arguments to new()
         mergeConstructorArguments(def, constructorArgs, path);
-        mapFunctions(def, fields);
+        //Create Proxy for wrapped class functions
+        mapFunctions(def, fields, wrapped);
 
-        trace(printer.printTypeDefinition(def));
+        // trace(printer.printTypeDefinition(def));
         Context.defineType(def);
 
         return Context.getType(clsname).toComplexType();
@@ -169,7 +172,7 @@ class Macro
         constructor.args = constructor.args.concat(args);
     }
 
-    private static function mapFunctions(def:TypeDefinition, fields:Map<String, ClassField>)
+    private static function mapFunctions(def:TypeDefinition, fields:Map<String, ClassField>, wrapped:ClassType)
     {
         for(key in fields.keys()) {
             var field = fields[key];
@@ -218,6 +221,9 @@ class Macro
                     default: null;
                 };
 
+                //Make sure that number of arguments is correct to clear up error messages
+                assertFluentArguments(wrappedType, arguments, field.name, wrapped.name);
+
                 newBody = macro {
                     var instance = __base.$key($a{arguments});
 
@@ -258,6 +264,28 @@ class Macro
                 }),
                 pos: Context.currentPos()
             });
+        }
+    }
+
+    private static function assertFluentArguments(wrappedType:ComplexType, arguments:Array<Expr>, fieldName:String, wrappedName:String)
+    {
+        var type = wrappedType.toType();
+        var typeName:String;
+        var constructorArgs = switch(type) {
+            case TInst(_.get() => e, _): {
+                trace(typeName);
+                typeName = e.name;
+
+                switch(e.constructor.get().expr().expr) {
+                    case TFunction(f): f.args;
+                    default: throw 'assert';
+                }
+            }
+            default: throw 'assert';
+        }
+
+        if(arguments.length > constructorArgs.length) {
+            throw 'Too many arguments passed to $typeName in $wrappedName#$fieldName';
         }
     }
 }
