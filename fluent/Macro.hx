@@ -222,7 +222,7 @@ class Macro
                 };
 
                 //Make sure that number of arguments is correct to clear up error messages
-                assertFluentArguments(wrappedType, arguments, field.name, wrapped.name);
+                assertFluentArguments(wrappedType, arguments, field.name, wrapped);
 
                 newBody = macro {
                     var instance = __base.$key($a{arguments});
@@ -267,7 +267,7 @@ class Macro
         }
     }
 
-    private static function assertFluentArguments(wrappedType:ComplexType, arguments:Array<Expr>, fieldName:String, wrappedName:String)
+    private static function assertFluentArguments(wrappedType:ComplexType, arguments:Array<Expr>, fieldName:String, wrapped:ClassType)
     {
         var type = wrappedType.toType();
         var typeName:String;
@@ -285,6 +285,7 @@ class Macro
         }
 
         if(arguments.length > constructorArgs.length) {
+            var wrappedName = wrapped.pack.join('.') + '.' + wrapped.name;
             throw 'Too many arguments passed to $typeName in $wrappedName#$fieldName';
         }
     }
