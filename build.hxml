@@ -1,0 +1,3 @@
+-main test.Main
+-js bin/output.js
+-debug
