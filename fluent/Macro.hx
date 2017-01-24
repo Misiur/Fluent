@@ -273,7 +273,6 @@ class Macro
         var typeName:String;
         var constructorArgs = switch(type) {
             case TInst(_.get() => e, _): {
-                trace(typeName);
                 typeName = e.name;
 
                 switch(e.constructor.get().expr().expr) {
