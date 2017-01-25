@@ -86,7 +86,7 @@ class Macro
         var def = macro class $clsname implements fluent.FluentParent 
         {
             private var __base:$path;
-            private var __parent:Null<fluent.FluentParent>;
+            private var __parent:Null<Dynamic>;
 
             public function new() //Dynamically added arguments lower in this file
             {

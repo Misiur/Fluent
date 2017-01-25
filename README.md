@@ -25,7 +25,7 @@ class Main
 
 class Foo
 {
-    private var bars:Array<Bar>;
+    private var bars:Array<Bar> = new Array();
 
     public function new() {}
 

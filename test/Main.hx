@@ -4,66 +4,63 @@ import fluent.Fluent;
 
 class Main
 {
-    private static function main()
+    public static function main()
     {
-        var a = new Fluent<Foo>(2.5);
-        a.donger().stronger();
+        var foo = new Fluent<Foo>();
+        var returnedValue = foo
+            .hello() //Hello
+            .bar()
+                .hi('You') //Hi You!
+            .end()
+            .listBars() //A bar, A bar
+            .returner()
+        ;
+        //returnedValue == 4
     }
 }
 
-class RootFoo
+class Foo
 {
-    public function donger()
-    {
-        trace('Donger!');
-    }
-}
+    private var bars:Array<Bar> = new Array();
 
-class ParentFoo extends RootFoo
-{
-    public function stronger()
-    {
-        trace('Stronger!');
-    }
-}
+    public function new() {}
 
-class Foo extends ParentFoo
-{
-    private var foo:Float;
-
-    public function new(foo:Float)
+    public function listBars()
     {
-        this.foo = foo;
+        trace(bars.join(', '));
     }
 
-
-    private function notCopied()
+    public function hello()
     {
-        trace("Can't access this");
+        trace('Hello');
     }
 
-    public function normal()
+    public function returner()
     {
-        trace("Normal function");
-    }
-
-    public function returning()
-    {
-        trace("Returning functon");
         return 2 + 2;
     }
 
     @Fluent
-    public function fluent()
+    public function bar()
     {
-        return new Bar();        
+        var bar = new Bar();
+        bars.push(bar);
+
+        return bar;
     }
 }
 
 class Bar
 {
-    public function new(arg:String = 'Yay')
+    public function new() {}
+
+    public function hi(who:String)
     {
-        trace(arg);
+        trace('Hi $who!');
+    }
+
+    public function toString()
+    {
+        return 'A bar';
     }
 }
