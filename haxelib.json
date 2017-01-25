@@ -4,7 +4,7 @@
     "license": "MIT",
     "tags": ["macro", "fluent", "api"],
     "description": "Library for creating fluid interface for existing classes using generic build macro",
-    "version": "1.0.0",
-    "releasenote": "Initial release, everything is working correctly.",
+    "version": "1.0.1",
+    "releasenote": "Fixed chain traversal",
     "contributors": ["Misiur"]
 }
