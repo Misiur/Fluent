@@ -69,3 +69,8 @@ class Bar
     }
 }
 ```
+
+## Flags
+There are two flags you can use
+`-D fluent_debug` - will dump out bodies of generated classes
+`-D fluent_dynamic` - allows extending your API, of course is costly and further hinders any type-completion you might have
