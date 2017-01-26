@@ -38,6 +38,14 @@ class Macro
             default: throw 'assert';
         }
 
+        var clsname = cls.name + wrapped.name;
+
+        try {
+            return Context.getType(clsname).toComplexType();
+        } catch(e:String) {
+            //Proceed as usual
+        }
+    
         var wrappedType = {
             name: wrapped.module.substring(wrapped.module.lastIndexOf(".") + 1),
             pack: wrapped.pack,
@@ -51,7 +59,7 @@ class Macro
             for(field in type.fields.get()) {
                 switch(field.kind) {
                     case FMethod(f): {
-                        if(field.isPublic && !fields.exists(field.name)) {
+                        if(!fields.exists(field.name)) {
                             fields.set(field.name, field);
                         }
                     }
@@ -69,7 +77,6 @@ class Macro
             parent = type.superClass;
         }
 
-        var clsname = cls.name + wrapped.name;
         var path = TPath(wrappedType);
 
         var constructorArgs = [];
@@ -83,7 +90,7 @@ class Macro
             default: throw 'assert';
         }
 
-        var def = macro class $clsname implements fluent.FluentParent 
+        var def = macro class $clsname implements fluent.FluentParent #if fluent_dynamic implements Dynamic #end
         {
             private var __base:$path;
             private var __parent:Null<Dynamic>;
@@ -122,9 +129,11 @@ class Macro
         //Add arguments to new()
         mergeConstructorArguments(def, constructorArgs, path);
         //Create Proxy for wrapped class functions
-        mapFunctions(def, fields, wrapped);
+        mapFunctions(def, fields, wrapped, wrappedType);
 
-        // trace(printer.printTypeDefinition(def));
+        #if fluent_debug
+        trace(printer.printTypeDefinition(def));
+        #end
         Context.defineType(def);
 
         return Context.getType(clsname).toComplexType();
@@ -172,12 +181,14 @@ class Macro
         constructor.args = constructor.args.concat(args);
     }
 
-    private static function mapFunctions(def:TypeDefinition, fields:Map<String, ClassField>, wrapped:ClassType)
+    private static function mapFunctions(def:TypeDefinition, fields:Map<String, ClassField>, wrapped:ClassType, wrappedType:TypePath)
     {
         for(key in fields.keys()) {
             var field = fields[key];
             var fluent = false;
             var fieldExpr = Context.getTypedExpr(field.expr());
+            var isPublic = field.isPublic;
+            var isResolve = key == 'resolve';
 
             for(meta in field.meta.get()) {
                 if(meta.name == 'Fluent') {
@@ -186,12 +197,8 @@ class Macro
                 }
             }
 
-            var body;
-
-            switch(fieldExpr.expr) {
-                case EFunction(_, f): {
-                    body = f;
-                }
+            var body = switch(fieldExpr.expr) {
+                case EFunction(_, f): f;
                 default: throw 'assert';
             }
 
@@ -201,6 +208,7 @@ class Macro
 
             var newBody:Expr;
             var type = Context.follow(field.type);
+            var access = isPublic ? APublic : APrivate;
 
             if(fluent) {
                 var wrapperArguments = (macro { parent: this, instance: instance });
@@ -229,7 +237,9 @@ class Macro
 
                     return new fluent.Fluent<$wrappedType>($a{allArguments});
                 };
-            } else {
+            } #if fluent_dynamic else if (isResolve) {
+                newBody = body.expr;
+            } #end else {
                 //Invert, so Void is false, non-void is true - this way code is more readable
                 var ret = !switch(type) {
                     case TFun(_, t): {
@@ -254,9 +264,25 @@ class Macro
                 }
             }
 
+            var meta:Metadata = [];
+            if(!isPublic) {
+                var path = [].concat(wrappedType.pack);
+                //Gods are CRAZY I tell you. For some reason we need to disregard module
+                // path.push(wrappedType.name);
+                path.push(wrappedType.sub);
+                path.push(field.name);
+
+                meta.push({
+                    name: ':access',
+                    params: [macro $p{path}],
+                    pos: Context.currentPos()
+                });
+            }
+
             def.fields.push({
                 name: key,
-                access: [APublic],
+                access: [access],
+                meta: meta,
                 kind: FFun({
                     expr: newBody,
                     args: body.args,

@@ -1,3 +1,5 @@
 -main test.Main
 -js bin/output.js
 -debug
+-D fluent_debug
+-D fluent_dynamic

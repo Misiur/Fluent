@@ -7,11 +7,13 @@ class Main
     public static function main()
     {
         var foo = new Fluent<Foo>();
+
         var returnedValue = foo
             .hello() //Hello
-            .bar()
+            .alias()
                 .hi('You') //Hi You!
             .end()
+            .bar().end()
             .listBars() //A bar, A bar
             .returner()
         ;
@@ -19,7 +21,7 @@ class Main
     }
 }
 
-class Foo
+class Foo implements Dynamic
 {
     private var bars:Array<Bar> = new Array();
 
@@ -47,6 +49,24 @@ class Foo
         bars.push(bar);
 
         return bar;
+    }
+
+    @Fluent
+    private function aliasBar()
+    {        
+        var bar = new Bar();
+        bars.push(bar);
+
+        return bar;   
+    }
+
+    public function resolve(field:String):Dynamic
+    {
+        if(field == 'alias') {
+            return aliasBar;
+        }
+
+        throw 'Nonexistent method';
     }
 }
 
