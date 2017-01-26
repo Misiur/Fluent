@@ -72,5 +72,38 @@ class Bar
 
 ## Flags
 There are two flags you can use
-`-D fluent_debug` - will dump out bodies of generated classes
-`-D fluent_dynamic` - allows extending your API, of course is costly and further hinders any type-completion you might have
+* `-D fluent_debug` - will dump out bodies of generated classes
+* `-D fluent_dynamic` - allows extending your API, of course is costly and further hinders any type-completion you might have
+* `-D fluent_dynamic_warning` - will warn you if you didn't implement `resolve` method in underlying class
+
+## Limitations
+If you are using `fluent_dynamic`, you cannot access class variables in `resolve` function. So:
+
+Invalid - will cause infinite recursion, because `extensions` will change into `this.resolve('extensions')` in wrapper class
+```haxe
+private var extensions:Map<String, Dynamic> = new Map();
+
+public function resolve(method:String)
+{
+    for(key in extensions.keys()) {
+        if(method == key) //do something
+    }
+}
+```
+
+Valid:
+```haxe
+private var extensions:Map<String, Dynamic> = new Map();
+
+public function resolve(method:String):Dynamic
+{
+    return findExtension();
+}
+
+private function findExtension(method:String)
+{
+    for(key in extensions.keys()) {
+        if(method == key) //do something
+    }
+}
+```

@@ -1,5 +1,6 @@
 -main test.Main
 -js bin/output.js
 -debug
--D fluent_debug
+# -D fluent_debug
+-D fluent_dynamic_warning
 -D fluent_dynamic

@@ -183,12 +183,23 @@ class Macro
 
     private static function mapFunctions(def:TypeDefinition, fields:Map<String, ClassField>, wrapped:ClassType, wrappedType:TypePath)
     {
+        #if fluent_dynamic
+        var hasResolve = false;
+        #end
+
         for(key in fields.keys()) {
             var field = fields[key];
             var fluent = false;
             var fieldExpr = Context.getTypedExpr(field.expr());
             var isPublic = field.isPublic;
+            
+            #if fluent_dynamic
             var isResolve = key == 'resolve';
+
+            if(isResolve) {
+                hasResolve = true;
+            }
+            #end
 
             for(meta in field.meta.get()) {
                 if(meta.name == 'Fluent') {
@@ -291,6 +302,12 @@ class Macro
                 pos: Context.currentPos()
             });
         }
+
+        #if (fluent_dynamic && fluent_dynamic_warning)
+        if(!hasResolve) {
+            trace('Warning: Fluent interface for ${wrapped.name} didn\'t find "resolve" method. Might cause silent errors');
+        }
+        #end
     }
 
     private static function assertFluentArguments(wrappedType:ComplexType, arguments:Array<Expr>, fieldName:String, wrapped:ClassType)
