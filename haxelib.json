@@ -4,7 +4,7 @@
     "license": "MIT",
     "tags": ["macro", "fluent", "api"],
     "description": "Library for creating fluid interface for existing classes using generic build macro",
-    "version": "1.1.0",
-    "releasenote": "Added 'implements Dynamic', fixed redeclaring of a wrapper class, added compilation flags",
+    "version": "1.1.1",
+    "releasenote": "Clear warning in README, new flags",
     "contributors": ["Misiur"]
 }
