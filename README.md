@@ -1,3 +1,6 @@
+# Update
+[This cookbook article](https://code.haxe.org/category/design-patterns/method-chaining-fluent-interface.html) shows a more native haxe way of creating a fluent interface, the repository remains as an archive of advanced macro usage.
+
 # Fluent
 This is a library for creating fluent interfaces over existing classes. Uses `@:genericBuild`.
 
